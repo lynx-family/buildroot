@@ -64,7 +64,7 @@ config("default_include_dirs") {
 }
 
 if (!is_win) {
-  using_sanitizer = is_asan || is_lsan || is_tsan || is_msan
+  using_sanitizer = is_asan || is_lsan || is_tsan || is_msan || is_hwasan
 }
 
 # compiler ---------------------------------------------------------------------
@@ -152,6 +152,21 @@ config("compiler") {
     if (is_ubsan) {
       cflags += [ "-fsanitize=undefined" ]
       ldflags += [ "-fsanitize=undefined" ]
+    }
+
+    if (is_hwasan) {
+      cflags += [ 
+        "-shared-libasan",
+        "-fsanitize=hwaddress",
+        "-fno-emulated-tls",
+        "-mllvm",
+        "-hwasan-globals=0"
+      ]
+      ldflags += [ 
+        "-shared-libasan",
+        "-fsanitize=hwaddress",
+        "-fno-emulated-tls",
+      ]
     }
 
     if (use_custom_libcxx) {
