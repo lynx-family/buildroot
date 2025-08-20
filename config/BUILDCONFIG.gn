@@ -207,8 +207,12 @@ declare_args() {
   # the path of lynx directory
   lynx_dir = ""
 
+  # the version of libcpp abi
+  libcpp_abi_version = 1
   # Whether to set _LIBCPP_ABI_NAMESPACE cr
   enable_libcpp_abi_namespace_cr = false
+  # the namespace of libcpp abi is `Cr` if `enable_libcpp_abi_namespace_cr` is true.
+  libcpp_abi_namespace_cr = "Cr"
 
   # Whether to set -fvisibility=hidden
   disable_visibility_hidden = false

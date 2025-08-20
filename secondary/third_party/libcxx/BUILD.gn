@@ -6,9 +6,13 @@ config("libcxx_config") {
   defines = [ "_LIBCPP_DISABLE_AVAILABILITY=1" ]
   include_dirs = [ "//build/secondary/third_party/libcxx/config" ]
   if (use_flutter_cxx) {
+    defines += [
+      "LIBCPP_ABI_VERSION=${libcpp_abi_version}",
+    ]
     if(enable_libcpp_abi_namespace_cr) {
       defines += [
         "ENABLE_LIBCPP_ABI_NAMESPACE_CR",
+        "LIBCPP_ABI_NAMESPACE_CR=${libcpp_abi_namespace_cr}",
       ]
     }
     if (is_win) {
