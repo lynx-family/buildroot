@@ -7,12 +7,15 @@ import("//build/toolchain/ccache.gni")
 import("//build/toolchain/clang.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/sccache.gni")
 
 if (use_goma) {
   assert(!use_ccache, "Goma and ccache can't be used together.")
   compiler_prefix = "$goma_dir/gomacc "
 } else if (use_ccache) {
   compiler_prefix = "ccache "
+} else if (use_sccache) {
+  compiler_prefix = "sccache "
 } else {
   compiler_prefix = ""
 }

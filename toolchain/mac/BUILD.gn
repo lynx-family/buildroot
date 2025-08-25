@@ -19,14 +19,17 @@ import("//build/config/sysroot.gni")
 import("//build/toolchain/clang.gni")
 import("//build/toolchain/clang_static_analyzer.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/sccache.gni")
 
 assert(!enable_bitcode || !use_ios_simulator)
 assert(!enable_bitcode || (use_xcode || bitcode_marker))
 
 if (use_goma) {
-  goma_prefix = "$goma_dir/gomacc "
+  compiler_prefix = "$goma_dir/gomacc "
+} else if(use_sccache){
+  compiler_prefix = "sccache "
 } else {
-  goma_prefix = ""
+  compiler_prefix = ""
 }
 
 # This will copy the gyp-mac-tool to the build directory. We pass in the source
@@ -91,7 +94,7 @@ template("mac_toolchain") {
 
     tool("cc") {
       depfile = "{{output}}.d"
-      command = "$goma_prefix $cc -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_c}} $coverage_flags -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cc -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_c}} $coverage_flags -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CC {{output}}"
       outputs =
@@ -100,7 +103,7 @@ template("mac_toolchain") {
 
     tool("cxx") {
       depfile = "{{output}}.d"
-      command = "$goma_prefix $cxx -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_cc}} $coverage_flags -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cxx -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_cc}} $coverage_flags -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CXX {{output}}"
       outputs =
@@ -110,7 +113,7 @@ template("mac_toolchain") {
     tool("asm") {
       # For GCC we can just use the C compiler to compile assembly.
       depfile = "{{output}}.d"
-      command = "$goma_prefix $cc -MD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} $sysroot_flags $lto_flags {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cc -MD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} $sysroot_flags $lto_flags {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "ASM {{output}}"
       outputs =
@@ -119,7 +122,7 @@ template("mac_toolchain") {
 
     tool("objc") {
       depfile = "{{output}}.d"
-      command = "$goma_prefix $cxx -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_c}} {{cflags_objc}} $coverage_flags -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cxx -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_c}} {{cflags_objc}} $coverage_flags -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "OBJC {{output}}"
       outputs =
@@ -128,7 +131,7 @@ template("mac_toolchain") {
 
     tool("objcxx") {
       depfile = "{{output}}.d"
-      command = "$goma_prefix $cxx -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_cc}} {{cflags_objcc}} $coverage_flags -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cxx -MD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $lto_flags {{cflags}} {{cflags_cc}} {{cflags_objcc}} $coverage_flags -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "OBJCXX {{output}}"
       outputs =
