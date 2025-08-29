@@ -5,6 +5,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import("//build/config/sysroot.gni")  # Imports harmony/config.gni.
+import("//build/toolchain/sccache.gni")
+
+if(use_sccache){
+  compiler_prefix = "sccache "
+} else {
+  compiler_prefix = ""
+}
 
 template("harmony_toolchain") {
   toolchain(target_name) {
@@ -32,7 +39,7 @@ template("harmony_toolchain") {
 
     tool("cc") {
       depfile = "{{output}}.d"
-      command = "$cc -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cc -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CC {{output}}"
       outputs =
@@ -41,7 +48,7 @@ template("harmony_toolchain") {
 
     tool("cxx") {
       depfile = "{{output}}.d"
-      command = "$cxx -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cxx -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CXX {{output}}"
       outputs =
@@ -50,7 +57,7 @@ template("harmony_toolchain") {
 
     tool("asm") {
       depfile = "{{output}}.d"
-      command = "$cc -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{asmflags}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+      command = "$compiler_prefix $cc -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{asmflags}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "ASM {{output}}"
       outputs =
