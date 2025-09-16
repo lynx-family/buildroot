@@ -1,4 +1,6 @@
 # Copyright 2021 The Lynx Authors. All rights reserved.
+# Licensed under the Apache License Version 2.0 that can be found in the
+# LICENSE file in the root directory of this source tree.
 
 config("benchmark_private_config") {
   visibility = [ ":*" ]
@@ -12,56 +14,117 @@ config("benchmark_config") {
   include_dirs = [ "include" ]
 }
 
+benchmark_sources = [
+  "include/benchmark/benchmark.h",
+  "src/arraysize.h",
+  "src/benchmark.cc",
+  "src/benchmark_api_internal.cc",
+  "src/benchmark_api_internal.h",
+  "src/benchmark_name.cc",
+  "src/benchmark_register.cc",
+  "src/benchmark_register.h",
+  "src/benchmark_runner.cc",
+  "src/benchmark_runner.h",
+  "src/check.h",
+  "src/colorprint.cc",
+  "src/colorprint.h",
+  "src/commandlineflags.cc",
+  "src/commandlineflags.h",
+  "src/complexity.cc",
+  "src/complexity.h",
+  "src/console_reporter.cc",
+  "src/counter.cc",
+  "src/counter.h",
+  "src/csv_reporter.cc",
+  "src/cycleclock.h",
+  "src/internal_macros.h",
+  "src/json_reporter.cc",
+  "src/log.h",
+  "src/mutex.h",
+  "src/perf_counters.cc",
+  "src/perf_counters.h",
+  "src/re.h",
+  "src/reporter.cc",
+  "src/sleep.cc",
+  "src/sleep.h",
+  "src/statistics.cc",
+  "src/statistics.h",
+  "src/string_util.cc",
+  "src/string_util.h",
+  "src/sysinfo.cc",
+  "src/thread_manager.h",
+  "src/thread_timer.h",
+  "src/timers.cc",
+  "src/timers.h",
+]
+
 static_library("benchmark") {
   testonly = true
 
-  sources = [
-    "include/benchmark/benchmark.h",
-    "src/arraysize.h",
-    "src/benchmark.cc",
-    "src/benchmark_api_internal.cc",
-    "src/benchmark_api_internal.h",
-    "src/benchmark_main.cc",
-    "src/benchmark_name.cc",
-    "src/benchmark_register.cc",
-    "src/benchmark_register.h",
-    "src/benchmark_runner.cc",
-    "src/benchmark_runner.h",
-    "src/check.h",
-    "src/colorprint.cc",
-    "src/colorprint.h",
-    "src/commandlineflags.cc",
-    "src/commandlineflags.h",
-    "src/complexity.cc",
-    "src/complexity.h",
-    "src/console_reporter.cc",
-    "src/counter.cc",
-    "src/counter.h",
-    "src/csv_reporter.cc",
-    "src/cycleclock.h",
-    "src/internal_macros.h",
-    "src/json_reporter.cc",
-    "src/log.h",
-    "src/mutex.h",
-    "src/perf_counters.cc",
-    "src/perf_counters.h",
-    "src/re.h",
-    "src/reporter.cc",
-    "src/sleep.cc",
-    "src/sleep.h",
-    "src/statistics.cc",
-    "src/statistics.h",
-    "src/string_util.cc",
-    "src/string_util.h",
-    "src/sysinfo.cc",
-    "src/thread_manager.h",
-    "src/thread_timer.h",
-    "src/timers.cc",
-    "src/timers.h",
-  ]
+  sources = benchmark_sources + [ "src/benchmark_main.cc" ]
 
   all_dependent_configs = [ ":benchmark_config" ]
   configs += [ ":benchmark_private_config" ]
+}
+
+# Targets to generate Cocoapods podspec file for integration
+# benchmark framework and helper files into Lynx example.
+
+example_benchmark_utils_sources =
+    [ "//testing/benchmark/example_benchmark_utils/benchmark_utils.cc" ]
+
+example_benchmark_utils_headers = [
+  "//testing/benchmark/example_benchmark_utils/map_benchmark_utils.h",
+  "//testing/benchmark/example_benchmark_utils/benchmark_utils.h",
+]
+
+subspec_target("Default") {
+  sources = benchmark_sources + example_benchmark_utils_sources +
+            example_benchmark_utils_headers
+
+  public_header_files =
+      [ "include/benchmark/benchmark.h" ] + example_benchmark_utils_headers
+
+  pod_target_xcconfig = {
+    HEADER_SEARCH_PATHS = [
+      "//",
+      "//lynx",
+      "//third_party/benchmark/include",
+    ]
+  }
+}
+
+podspec_target("benchmark_podspec") {
+  output_name = "GoogleBenchmark.podspec"
+  output_path = rebase_path("//")
+  root_specification = {
+    name = "GoogleBenchmark"
+    version = "1.0.0"
+    summary = "The framework of Goolge Benchmark integrated to LynxExample."
+    homepage = "https://github.com/google/benchmark"
+    license = "MIT"
+    author = "Lynx"
+    source = {
+      git = "git@github.com:google/benchmark.git"
+    }
+
+    default_subspec = "Default"
+
+    compiler_flags = [
+      "-Wall",
+      "-Wextra",
+      "-fno-rtti",
+    ]
+    ios = {
+      deployment_target = "10.0"
+      pod_target_xcconfig = {
+        GCC_PREPROCESSOR_DEFINITIONS = []
+        CLANG_CXX_LANGUAGE_STANDARD = "gnu++17"
+      }
+    }
+  }
+
+  deps = [ ":Default" ]
 }
 
 source_set("benchmark_main") {
