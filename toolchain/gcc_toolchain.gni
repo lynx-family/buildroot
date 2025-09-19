@@ -164,11 +164,6 @@ template("gcc_toolchain") {
       soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
       sofile = "{{root_out_dir}}/$soname"  # Possibly including toolchain dir.
       rspfile = sofile + ".rsp"
-      unstripped_sofile = sofile
-
-      if (defined(invoker.strip) || defined(invoker.llvm_objcopy)) {
-        unstripped_sofile = "{{root_out_dir}}/lib.unstripped/$soname"
-      }
 
       # Generate a map file to be used for binary size analysis.
       # Map file adds ~10% to the link time on a z620.
@@ -187,22 +182,11 @@ template("gcc_toolchain") {
       # existing .TOC file, overwrite it, otherwise, don't change it.
       tocfile = sofile + ".TOC"
       temporary_tocname = sofile + ".tmp"
-      link_command = "$ld -shared {{ldflags}} $coverage_flags -o $unstripped_sofile $map_switch -Wl,--build-id=sha1 -Wl,-soname=$soname @$rspfile"
-      toc_command = "{ $readelf -d $unstripped_sofile | grep SONAME ; $nm -gD -f posix $unstripped_sofile | cut -f1-2 -d' '; } > $temporary_tocname"
+      link_command = "$ld -shared {{ldflags}} $coverage_flags -o $sofile $map_switch -Wl,--build-id=sha1 -Wl,-soname=$soname @$rspfile"
+      toc_command = "{ $readelf -d $sofile | grep SONAME ; $nm -gD -f posix $sofile | cut -f1-2 -d' '; } > $temporary_tocname"
       replace_command = "if ! cmp -s $temporary_tocname $tocfile; then mv $temporary_tocname $tocfile; fi"
 
       command = "$link_command && $toc_command && $replace_command"
-      if (defined(invoker.strip)) {
-        strip = invoker.strip
-        strip_command =
-            "${strip} --strip-unneeded -o $sofile $unstripped_sofile"
-        command += " && " + strip_command
-      } else if (defined(invoker.llvm_objcopy)) {
-        strip = invoker.llvm_objcopy
-        strip_command = "${strip} --strip-all $unstripped_sofile $sofile"
-        command += " && " + strip_command
-      }
-
       if (defined(invoker.postsolink)) {
         command += " && " + invoker.postsolink
       }
@@ -229,7 +213,6 @@ template("gcc_toolchain") {
       # tocfile for dependency management.
       outputs = [
         sofile,
-        unstripped_sofile,
         tocfile,
       ]
       if (defined(invoker.solink_outputs)) {
