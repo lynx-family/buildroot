@@ -1,11 +1,41 @@
-# Copyright 2019 The Flutter Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# Copyright 2022 The Lynx Authors. All rights reserved.
+# Licensed under the Apache License Version 2.0 that can be found in the
+# LICENSE file in the root directory of this source tree.
 
-# The ANGLE build rules have a target that depends on jsoncpp, but the Flutter
-# engine never actually builds that target, so just this provides empty dummy
-# dependencies to satisfy the generation-time resolution.
 config("jsoncpp_config") {
+  include_dirs = [ "include" ]
 }
-group("jsoncpp") {
+
+source_set("jsoncpp") {
+  sources = [
+    "include/json/allocator.h",
+    "include/json/assertions.h",
+    "include/json/config.h",
+    "include/json/forwards.h",
+    "include/json/json.h",
+    "include/json/json_features.h",
+    "include/json/reader.h",
+    "include/json/value.h",
+    "include/json/version.h",
+    "include/json/writer.h",
+    "src/lib_json/json_reader.cpp",
+    "src/lib_json/json_tool.h",
+    "src/lib_json/json_value.cpp",
+    "src/lib_json/json_writer.cpp",
+  ]
+
+  public_configs = [ ":jsoncpp_config" ]
+
+  defines = [
+    "JSON_USE_EXCEPTION=0",
+    "JSON_USE_NULLREF=0",
+  ]
+
+  include_dirs = [ "src/lib_json" ]
+
+  if (is_win && !is_clang) {
+    cflags = [ "/EHsc" ]
+  } else {
+    cflags_cc = [ "-Wno-implicit-fallthrough" ]
+  }
 }
