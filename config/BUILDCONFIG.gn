@@ -437,6 +437,7 @@ _native_compiler_configs = [
   "//build/config/compiler:no_rtti",
   "//build/config/compiler:runtime_library",
   "//build/config/coverage:default_coverage",
+  "//build/config/compiler:no_exceptions",
 ]
 
 if (use_flutter_cxx) {
