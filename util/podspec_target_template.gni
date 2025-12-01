@@ -103,6 +103,21 @@ template("podspec_target") {
   }
   if (defined(invoker.root_specification)) {
     root_specification_ = invoker.root_specification
+    if (defined(root_specification_.pod_target_xcconfig)) {
+      pod_target_xcconfig = root_specification_.pod_target_xcconfig
+      if (defined(pod_target_xcconfig.HEADER_SEARCH_PATHS)) {
+        headers = []
+        foreach(header, pod_target_xcconfig.HEADER_SEARCH_PATHS) {
+          header_path =
+              string_replace(rebase_path(header), rebase_path("//"), "//")
+          headers += [ header_path ]
+        }
+        pod_target_xcconfig.HEADER_SEARCH_PATHS = []
+        pod_target_xcconfig.HEADER_SEARCH_PATHS = headers
+      }
+      root_specification_.pod_target_xcconfig = {}
+      root_specification_.pod_target_xcconfig = pod_target_xcconfig
+    }
   }
 
   deps_ = []
