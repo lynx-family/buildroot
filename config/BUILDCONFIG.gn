@@ -626,7 +626,18 @@ if (custom_toolchain != "") {
   host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
   set_default_toolchain("//build/toolchain/custom")
 } else if (is_win) {
-  if (is_clang) {
+  # On Windows always use the target CPU for host builds for x86/x64. On the
+  # configurations we support this will always work and it saves build steps.
+  # Windows ARM64 targets require an x64 host for cross build.
+  if (target_cpu == "x86" || target_cpu == "x64") {
+    if (is_clang) {
+      host_toolchain = "//build/toolchain/win:clang_$target_cpu"
+      set_default_toolchain("//build/toolchain/win:clang_$target_cpu")
+    } else {
+      host_toolchain = "//build/toolchain/win:$target_cpu"
+      set_default_toolchain("//build/toolchain/win:$target_cpu")
+    }
+  } else if (is_clang) {
     host_toolchain = "//build/toolchain/win:clang_$host_cpu"
     set_default_toolchain("//build/toolchain/win:clang_$current_cpu")
   } else {
