@@ -759,6 +759,9 @@ def write_project(project, target):
         continue
     writer.write_target(target, project)
 
+  for target in deps_binary_targets_list_sorted:
+    start_target.all_deps.append(target.gn_name)
+
   writer.write_main_target(start_target, deps_source_targets_list_sorted)
   writer.write_dep_actions(start_target.output_name, start_target.dep_actions)
   writer.write_lib_search_paths(start_target, project)
@@ -781,7 +784,7 @@ def gn_to_cmake(project_json_object, cmake_targets):
       print("%s is not existed in GN project." % target_name)
       continue
     cmake_target = Target(target_name, project)
-    if cmake_target.is_only_sub_cmake == True:
+    if cmake_target.is_only_sub_cmake == "true":
       continue
     r |= write_project(project, cmake_target)
   return r
