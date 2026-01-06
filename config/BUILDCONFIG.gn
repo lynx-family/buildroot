@@ -202,7 +202,7 @@ declare_args() {
   use_ndk_cxx = false
 
   # Whether to use llvm C++ base library configuration in third_party
-  use_flutter_cxx = false
+  use_flutter_cxx = true
 
   # Whether to use ndk c++_static
   use_ndk_static_cxx = false
