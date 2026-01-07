@@ -165,7 +165,6 @@ class Target:
     self.output_path = self.metadata.output_path if parent_target is None else parent_target.output_path
     self.cmake_version = self.metadata.cmake_version
     self.sub_cmake_target = self.collect_sub_cmake_target()
-    self.all_deps = [self.gn_name]
 
   def get_declare_path(self):
     module_path = self.gn_name.split(':')[0]
@@ -577,14 +576,15 @@ class Writer:
         dirs = project.instead_source_path_prefix_list(target.lib_dirs)
         self.write_current_target_link_directories(target.output_name, dirs)
 
-  def write_deps_local_binary_libs(self, target, deps_binary_targets, project):
+  def write_deps_local_binary_libs(self, target, deps_binary_targets, project, all_targets_aredly_written):
     target_paths = set()
     target_path = project.instead_source_path_prefix(target.gn_name.split(':')[0])
     for binary_target in deps_binary_targets:
       search_path_name = binary_target.cmake_name + '_search_path'
-      if target.parent_target and binary_target.gn_name in target.parent_target.all_deps:
+      if binary_target.gn_name in all_targets_aredly_written:
         target_paths.add("${%s}" % search_path_name)
         continue
+      all_targets_aredly_written.add(binary_target.gn_name)
       binary_target_path = project.instead_source_path_prefix(binary_target.gn_name.split(':')[0])
       self.write_variable_list('set', search_path_name, ["${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"])
       # CMAKE_LIBRARY_OUTPUT_DIRECTORY output on windows is different from unix
@@ -725,7 +725,7 @@ class Writer:
     self.out.write(variable_name)
     self.out.write('}')
   
-def write_project(project, target):
+def write_project(project, target, all_targets_aredly_written):
   if type(project) != Project or type(target) != Target:
     return -1
   start_target = target
@@ -753,27 +753,25 @@ def write_project(project, target):
   writer.write_find_package(start_target, project)
 
   for target in deps_source_targets_list_sorted:
-    start_target.all_deps.append(target.gn_name)
-    if start_target.parent_target:
-      if target.gn_name in start_target.parent_target.all_deps:
-        continue
+    if target.gn_name in all_targets_aredly_written:
+      continue
     writer.write_target(target, project)
-
-  for target in deps_binary_targets_list_sorted:
-    start_target.all_deps.append(target.gn_name)
+    all_targets_aredly_written.add(target.gn_name)
 
   writer.write_main_target(start_target, deps_source_targets_list_sorted)
   writer.write_dep_actions(start_target.output_name, start_target.dep_actions)
   writer.write_lib_search_paths(start_target, project)
-  writer.write_deps_local_binary_libs(start_target, deps_binary_targets_list_sorted, project)
+  writer.write_deps_local_binary_libs(start_target, deps_binary_targets_list_sorted, project, all_targets_aredly_written)
   writer.write_subdirectory(start_target, project, cmake_rel_out_path)
   writer.write_target_link_libs(start_target, deps_binary_targets_list_sorted)
   writer.write_linker_flags(start_target)
 
+  all_targets_aredly_written.add(start_target.gn_name)
+
   r = 0
   for sub in start_target.sub_cmake_target:
     sub_target = Target(sub, project, start_target)
-    r |= write_project(project, sub_target)
+    r |= write_project(project, sub_target, all_targets_aredly_written)
   return r
 
 def gn_to_cmake(project_json_object, cmake_targets):
@@ -784,9 +782,11 @@ def gn_to_cmake(project_json_object, cmake_targets):
       print("%s is not existed in GN project." % target_name)
       continue
     cmake_target = Target(target_name, project)
-    if cmake_target.is_only_sub_cmake == "true":
-      continue
-    r |= write_project(project, cmake_target)
+    if cmake_target.is_only_sub_cmake == True:
+      continue入
+    # store all cmake targets that have been written
+    all_targets_aredly_written = set()
+    r |= write_project(project, cmake_target, all_targets_aredly_written)
   return r
 
 
