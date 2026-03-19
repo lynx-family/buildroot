@@ -38,7 +38,25 @@ import argparse
 import os
 import re
 import sys
-from distutils.util import strtobool
+
+def strtobool(val):
+    """
+    distutils was removed in Python 3.12.
+    Keep a local fallback for strtobool() to support newer Python versions.
+    """
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
+    else:
+        raise ValueError(f"invalid truth value {val!r}")
+
+try:
+    from distutils.util import strtobool as _original_strtobool
+except ImportError:
+    _original_strtobool = strtobool
+strtobool = _original_strtobool
 
 def main():
     parser = argparse.ArgumentParser(
