@@ -8,6 +8,11 @@ import("//build/toolchain/clang.gni")
 import("//build/toolchain/goma.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 
+declare_args() {
+  # When true, Android shared libraries are stripped even in debug builds.
+  android_strip_debug_so = false
+}
+
 # The Android GCC toolchains share most of the same parameters, so we have this
 # wrapper around gcc_toolchain to avoid duplication of logic.
 #
@@ -94,14 +99,14 @@ template("android_gcc_toolchain") {
     soname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     stripped_soname = "{{root_out_dir}}/lib.stripped/{{target_output_name}}{{output_extension}}"
 
-    if (!is_debug) {
+    if (!is_debug || android_strip_debug_so) {
       temp_stripped_soname = "${stripped_soname}.tmp"
 
-    strip_command =
-        "$android_strip --strip-unneeded -o $temp_stripped_soname $soname"
-    replace_command = "if ! cmp -s $temp_stripped_soname $stripped_soname; then mv $temp_stripped_soname $stripped_soname; fi"
-    postsolink = "$strip_command && $replace_command"
-    solink_outputs = [ stripped_soname ]
+      strip_command =
+          "$android_strip --strip-unneeded -o $temp_stripped_soname $soname"
+      replace_command = "if ! cmp -s $temp_stripped_soname $stripped_soname; then mv $temp_stripped_soname $stripped_soname; fi"
+      postsolink = "$strip_command && $replace_command"
+      solink_outputs = [ stripped_soname ]
     } else {
       postsolink = "cp $soname $stripped_soname"
       solink_outputs = [ stripped_soname ]
