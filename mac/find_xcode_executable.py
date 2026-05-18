@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 # Copyright 2020 The Lynx Authors. All rights reserved.
 
@@ -19,16 +18,24 @@ def main():
   parser.add_argument("name", help="The name of the executable to find")
   args = parser.parse_args()
 
+  job = subprocess.Popen(['xcrun', '-find', args.name],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+  out, err = job.communicate()
+  out = out.decode().strip()
+  if job.returncode == 0 and out:
+    return out
+
   job = subprocess.Popen(['xcodebuild', '-find-executable', args.name],
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.DEVNULL)
+                         stderr=subprocess.PIPE)
   out, err = job.communicate()
-  out = out.decode()
-  if job.returncode != 0 and err != None:
-    sys.stderr.writelines([out, err])
-    raise Exception(('Error %d running xcodebuild, please check if you hava Xcode installed on your system') % job.returncode)
+  out = out.decode().strip()
+  if job.returncode != 0 or not out:
+    sys.stderr.writelines([out, err.decode()])
+    raise Exception(('Error %d running xcodebuild, please check if you have Xcode installed on your system') % job.returncode)
 
-  return out.strip()
+  return out
 
 
 if __name__ == '__main__':
