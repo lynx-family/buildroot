@@ -76,9 +76,15 @@ def _SetupScript(target_cpu, sdk_dir):
     # We only support x64-hosted tools.
     # TODO(scottmg|dpranke): Non-depot_tools toolchain: need to get Visual
     # Studio install location from registry.
+    if target_cpu == 'arm64':
+      vcvars_arch = 'amd64_arm64'
+    elif target_cpu == 'x86':
+      vcvars_arch = 'amd64_x86'
+    else:
+      vcvars_arch = 'amd64'
     return [os.path.normpath(os.path.join(os.environ['GYP_MSVS_OVERRIDE_PATH'],
                                           'VC/Auxiliary/Build/vcvarsall.bat')),
-            'amd64_x86' if target_cpu == 'x86' else 'amd64']
+            vcvars_arch]
 
 
 def _FormatAsEnvironmentBlock(envvar_dict):
