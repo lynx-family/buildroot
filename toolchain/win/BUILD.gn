@@ -141,7 +141,7 @@ template("msvc_toolchain") {
         x64 = "-D_ML64_X64"
       } else if (toolchain_args.current_cpu == "arm64") {
         is_msvc_assembler = false
-        prefix = rebase_path("$clang_base_path/bin", root_build_dir)
+        prefix = rebase_path(vc_bin_dir, root_build_dir)
         ml = "${goma_prefix}${prefix}/clang_cl.exe --target=arm64-windows"
         x64 = ""
       } else {
