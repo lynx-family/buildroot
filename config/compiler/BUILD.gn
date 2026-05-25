@@ -196,6 +196,15 @@ config("compiler") {
     # These flags are shared between the C compiler and linker.
     common_mac_flags = []
 
+    if (is_ios || is_tvos) {
+      # Xcode 26.5 moves some UIKit-transitively imported headers, such as
+      # UIUtilities/UIDefines.h, under System/Library/SubFrameworks. When we
+      # compile with an explicit SDK sysroot outside of xcodebuild, clang no
+      # longer finds those subframework headers automatically, so add the
+      # sysroot-relative subframework search path explicitly.
+      common_mac_flags += [ "-iframeworkwithsysroot/System/Library/SubFrameworks" ]
+    }
+
     if (enable_bitcode) {
       if (bitcode_marker) {
         common_mac_flags += [ "-fembed-bitcode-marker" ]
