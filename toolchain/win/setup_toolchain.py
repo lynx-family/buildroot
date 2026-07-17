@@ -134,6 +134,8 @@ def main():
 
   # TODO(scottmg|goma): Do we need an equivalent of
   # ninja_use_custom_environment_files?
+  if not ('GYP_MSVS_OVERRIDE_PATH' in os.environ and os.environ['GYP_MSVS_OVERRIDE_PATH'].strip()):
+    os.environ['GYP_MSVS_OVERRIDE_PATH'] = visual_studio_path
 
   for cpu in cpus:
     # Extract environment variables for subprocesses.
