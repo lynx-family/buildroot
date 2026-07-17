@@ -26,6 +26,7 @@ if (is_harmony) {
   declare_args() {
     harmony_sdk_root = default_harmony_sdk_root
     harmony_sdk_version = default_harmony_sdk_version
+    use_bisheng = false
   }
 
   # Host stuff -----------------------------------------------------------------
@@ -61,7 +62,21 @@ if (is_harmony) {
   # Path to the OpenHarmony NDK and SDK.
   harmony_ndk_root = "${harmony_sdk}/openharmony/native"
 
-  harmony_toolchain_root = "$harmony_ndk_root/llvm"
+  if (use_bisheng) {
+    harmony_compiler_root = "${harmony_sdk}/hms/native/BiSheng"
+    assert(exec_script("//build/dir_exists.py",
+                       [ rebase_path(harmony_compiler_root, root_build_dir) ],
+                       "string") == "True",
+           "BiSheng compiler root does not exist: $harmony_compiler_root")
+    assert(exec_script("//build/dir_exists.py",
+                       [ rebase_path("$harmony_compiler_root/bin",
+                                     root_build_dir) ],
+                       "string") == "True",
+           "BiSheng compiler bin directory does not exist: " +
+               "$harmony_compiler_root/bin")
+  } else {
+    harmony_compiler_root = "$harmony_ndk_root/llvm"
+  }
 
   # Location of libgcc. This is only needed for the current GN toolchain, so we
   # only need to define the current one, rather than one for every platform
@@ -77,7 +92,7 @@ if (is_harmony) {
   }
 
   harmony_lib = "$harmony_ndk_root/sysroot/usr/lib/$harmony_target_triple"
-  harmony_tool_prefix = "$harmony_toolchain_root/bin"
+  harmony_tool_prefix = "$harmony_compiler_root/bin"
   harmony_readelf = "${harmony_tool_prefix}/llvm-readelf"
   harmony_objcopy = "${harmony_tool_prefix}/llvm-objcopy"
 
