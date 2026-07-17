@@ -7,7 +7,7 @@
 import("//build/config/sysroot.gni")  # Imports harmony/config.gni.
 import("//build/toolchain/sccache.gni")
 
-if(use_sccache){
+if (use_sccache) {
   compiler_prefix = "sccache "
 } else {
   compiler_prefix = ""
@@ -15,7 +15,7 @@ if(use_sccache){
 
 template("harmony_toolchain") {
   toolchain(target_name) {
-    toolchain_bin = "${harmony_toolchain_root}/bin"
+    toolchain_bin = "${harmony_compiler_root}/bin"
 
     # We can't do string interpolation ($ in strings) on things with dots in
     # them. To allow us to use $cc below, for example, we create copies of
@@ -31,7 +31,7 @@ template("harmony_toolchain") {
     target_triple_flags = "--target=${harmony_target_triple}"
     sysroot_flags = "--sysroot ${harmony_ndk_root}/sysroot"
 
-    custom_lib_flags = "-L${harmony_toolchain_root}/lib/${harmony_target_triple}"
+    custom_lib_flags = "-L${harmony_compiler_root}/lib/${harmony_target_triple}"
 
     # These library switches can apply to all tools below.
     lib_switch = "-l"
