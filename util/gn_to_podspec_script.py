@@ -174,7 +174,7 @@ class SubspecTarget:
     return sorted(path_list)
 
   def string_to_int(self, version_str):
-    version_int = re.findall(r'\d+', version_str)
+    version_int = re.findall(r'\d+', str(version_str))
     return int("".join(version_int))
 
   def parse_dependency(self, dependencies):
@@ -302,7 +302,7 @@ class SubspecTarget:
           self.add_dict_params(key, value, lambda v1, v2: set(v1) |set (v2), [])
           continue
         if key == 'dependency_versions':
-          self.add_dict_params(key, value, lambda v1, v2: v1 if self.string_to_int(v1) > self.string_to_int(v2) else v2, 1000000)
+          self.add_dict_params(key, value, lambda v1, v2: v1 if self.string_to_int(v1) > self.string_to_int(v2) else v2, "0")
           continue
         if key in SubspecTargetFlattenStringVar:
           self.para_competition(value, key)
