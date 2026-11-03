@@ -151,6 +151,9 @@ if (is_android) {
   print("android_ndk_root", android_ndk_root)
   android_ndk_include_dir = "$android_ndk_root/usr/include"
 
+  android_ndk_major_version = exec_script("//build/android/ndk_version.py", [
+      rebase_path("${android_ndk_root}/source.properties", ".") ], "value")
+
   android_sdk = "${android_sdk_root}/platforms/android-${android_sdk_version}"
 
   android_sdk_tools = "${android_sdk_root}/tools"
@@ -166,6 +169,10 @@ if (is_android) {
   # we have already set 16 as the default value for android_api_level.
   if (current_cpu == "x64" || current_cpu == "arm64") {
     android_api_level = 22
+  }
+  # NDK r27 requires API 21 or newer, including for 32-bit targets.
+  if (android_ndk_major_version >= 27 && android_api_level < 21) {
+    android_api_level = 21
   }
   x86_android_sysroot_subdir = "platforms/android-${android_api_level}/arch-x86"
   arm_android_sysroot_subdir = "platforms/android-${android_api_level}/arch-arm"
@@ -227,8 +234,6 @@ if (is_android) {
 
   android_tool_prefix = "$android_toolchain_root/bin/$android_target_triple-"
 
-  android_ndk_major_version = exec_script("//build/android/ndk_version.py", [
-      rebase_path("${android_ndk_root}/source.properties", ".") ], "value")
   if (android_ndk_major_version >= 27) {
     android_tool_prefix = "$android_ndk_root/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}/bin/llvm-"
   }
