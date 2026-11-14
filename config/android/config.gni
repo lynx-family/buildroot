@@ -152,7 +152,7 @@ if (is_android) {
   android_ndk_include_dir = "$android_ndk_root/usr/include"
 
   android_ndk_major_version = exec_script("//build/android/ndk_version.py", [
-      rebase_path("${android_ndk_root}/source.properties", ".") ], "value")
+      rebase_path("${android_ndk_root}/source.properties", root_build_dir) ], "value")
 
   android_sdk = "${android_sdk_root}/platforms/android-${android_sdk_version}"
 
